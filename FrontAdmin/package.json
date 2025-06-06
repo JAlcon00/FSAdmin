@@ -1,0 +1,15 @@
+{
+  "name": "frontadmin",
+  "version": "1.0.0",
+  "description": "Proyecto FrontAdmin para el desarrollo integral de aplicaciones empresariales.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "jesusalmanza",
+  "license": "ISC",
+  "dependencies": {},
+  "devDependencies": {}
+}
