@@ -11,6 +11,12 @@ export interface Pedido {
     cantidad: number;
     precioUnitario: number;
   }>;
+  detalles?: Array<{
+    articulo: string;
+    cantidad: number;
+    precioUnitario: number;
+    subtotal?: number;
+  }>;
   total: number;
   fechaCreacion: string;
   estado: string;
@@ -38,4 +44,9 @@ export async function actualizarPedido(id: string, data: Partial<Pedido>): Promi
 
 export async function eliminarPedido(id: string): Promise<void> {
   await axios.delete(`${API_URL}/pedidos/${id}`);
+}
+
+export async function actualizarEstadoPedido(id: string, estado: string): Promise<Pedido> {
+  const res = await axios.put(`${API_URL}/pedidos/${id}/estado`, { estado });
+  return res.data;
 }

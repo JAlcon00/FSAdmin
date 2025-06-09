@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { TablaCategorias } from '../components/Categorias/TablaCategorias/TablaCategorias';
 import { FormCategoria } from '../components/Categorias/FormCategoria/FormCategoria';
 import { ModalEliminarCategoria } from '../components/Categorias/ModalEliminarCategoria/ModalEliminarCategoria';
-import LoaderPorcentaje from '../components/LoaderPorcentaje/LoaderPorcentaje';
 import type { Categoria } from '../services/categoriasService';
 import { crearCategoria, actualizarCategoria, eliminarCategoria } from '../services/categoriasService';
 import { useCategorias } from '../hooks/useCategorias';

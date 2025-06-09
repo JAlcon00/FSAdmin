@@ -17,3 +17,12 @@ export async function getResumenVentasMensual(): Promise<any> {
   const res = await axios.get(`${API_URL}/sales/resumen-mensual`);
   return res.data;
 }
+
+export async function crearVentaDesdePedido(pedido: any): Promise<any> {
+  const res = await axios.post(`${API_URL}/sales/desde-pedido`, pedido);
+  return res.data;
+}
+
+export async function borrarVentaPorPedido(pedidoId: string): Promise<void> {
+  await axios.delete(`${API_URL}/sales/por-pedido/${pedidoId}`);
+}

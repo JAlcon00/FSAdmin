@@ -141,7 +141,7 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ pedidos, ventas, loading, e
             <tbody>
               {pedidos.map(pedido => (
                 <tr key={pedido._id}>
-                  <td className="fw-semibold text-dark">{getNombreCliente(pedido.cliente)}</td>
+                  <td className="fw-semibold text-dark">{getNombreCliente(pedido.usuario)}</td>
                   <td>{pedido.detalles?.length ?? 0}</td>
                   <td className="text-success fw-bold">
                     {pedido.detalles?.length === 0 ? (
