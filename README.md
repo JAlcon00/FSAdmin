@@ -1,59 +1,27 @@
-# React + TypeScript + Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
 # FSAdmin
 
-## License
+## Objetivo
+Panel de administración para gestionar productos, categorías y ventas de una tienda. El proyecto está construido con [Vite](https://vitejs.dev/), [React](https://react.dev/) y [TypeScript](https://www.typescriptlang.org/).
 
-This project is licensed under the [MIT](LICENSE) license.
+## Clonar e instalar
+```bash
+git clone <url del repositorio>
+cd FSAdmin
+npm install
+```
+
+Crea un archivo `.env` en la raíz y define la dirección de la API:
+```bash
+VITE_API_URL=http://localhost:3000/api
+```
+
+## Comandos importantes
+- `npm run dev`: inicia el entorno de desarrollo con recarga en caliente.
+- `npm run build`: genera la versión de producción.
+- `npm run preview`: sirve la compilación generada para revisarla localmente.
+
+## Carpeta `FrontAdmin`
+Contiene un prototipo antiguo escrito en JavaScript (`src/index.js`). No es necesaria para ejecutar la aplicación principal basada en Vite, pero se mantiene por historial.
+
+## Licencia
+Este proyecto está bajo la licencia [MIT](LICENSE).
