@@ -1,19 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getPedidos} from '../services/pedidosService';
 import type { Pedido } from '../services/pedidosService';
 
 export function usePedidos() {
-  const [pedidos, setPedidos] = useState<Pedido[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const { data: pedidos, isLoading: loading, error } = useQuery<Pedido[], Error>({
+    queryKey: ['pedidos'],
+    queryFn: getPedidos,
+    staleTime: 1000 * 60,
+  });
 
-  useEffect(() => {
-    setLoading(true);
-    getPedidos()
-      .then(setPedidos)
-      .catch(() => setError('Error al cargar pedidos'))
-      .finally(() => setLoading(false));
-  }, []);
-
-  return { pedidos, loading, error };
+  return {
+    pedidos: pedidos ?? [],
+    loading,
+    error: error ? error.message : null,
+    refetch: () => queryClient.invalidateQueries({ queryKey: ['pedidos'] })
+  };
 }

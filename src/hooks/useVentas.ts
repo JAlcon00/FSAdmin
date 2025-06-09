@@ -1,26 +1,26 @@
-import { useEffect, useState } from 'react';
-import { getVentasUltimos7Dias, getResumenVentasMensual} from '../services/ventasService'
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { getVentasUltimos7Dias, getResumenVentasMensual} from '../services/ventasService';
 import type { Venta } from '../services/ventasService';
 
 export function useVentas() {
-  const [ventas, setVentas] = useState<Venta[]>([]);
-  const [resumen, setResumen] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const { data, isLoading: loading, error } = useQuery<{ventas: Venta[]; resumen: any}, Error>({
+    queryKey: ['ventas'],
+    queryFn: async () => {
+      const [ventasData, resumenData] = await Promise.all([
+        getVentasUltimos7Dias(),
+        getResumenVentasMensual()
+      ]);
+      return { ventas: ventasData, resumen: resumenData };
+    },
+    staleTime: 1000 * 60,
+  });
 
-  useEffect(() => {
-    setLoading(true);
-    Promise.all([
-      getVentasUltimos7Dias(),
-      getResumenVentasMensual()
-    ])
-      .then(([ventasData, resumenData]) => {
-        setVentas(ventasData);
-        setResumen(resumenData);
-      })
-      .catch(() => setError('Error al cargar ventas'))
-      .finally(() => setLoading(false));
-  }, []);
-
-  return { ventas, resumen, loading, error };
+  return {
+    ventas: data?.ventas ?? [],
+    resumen: data?.resumen ?? null,
+    loading,
+    error: error ? error.message : null,
+    refetch: () => queryClient.invalidateQueries({ queryKey: ['ventas'] })
+  };
 }

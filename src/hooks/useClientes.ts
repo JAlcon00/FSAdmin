@@ -1,19 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getClientes } from '../services/clientesService';
 import type { Cliente } from '../services/clientesService';
 
 export function useClientes() {
-  const [clientes, setClientes] = useState<Cliente[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const { data: clientes, isLoading: loading, error } = useQuery<Cliente[], Error>({
+    queryKey: ['clientes'],
+    queryFn: getClientes,
+    staleTime: 1000 * 60,
+  });
 
-  useEffect(() => {
-    setLoading(true);
-    getClientes()
-      .then(setClientes)
-      .catch(() => setError('Error al cargar clientes'))
-      .finally(() => setLoading(false));
-  }, []);
-
-  return { clientes, loading, error };
+  return {
+    clientes: clientes ?? [],
+    loading,
+    error: error ? error.message : null,
+    refetch: () => queryClient.invalidateQueries({ queryKey: ['clientes'] })
+  };
 }
