@@ -6,9 +6,8 @@ const API_URL = import.meta.env.VITE_API_URL;
 export interface Usuario {
   _id: string;
   nombre: string;
-  correo: string;
-  rol: string;
-  activo: boolean;
+  password?: string;
+  rol: 'cliente' | 'admin' | 'superadmin';
 }
 
 export async function getUsuarios(): Promise<Usuario[]> {
@@ -23,7 +22,7 @@ export async function getUsuarioById(id: string): Promise<Usuario> {
 
 export async function crearUsuario(data: Partial<Usuario>): Promise<Usuario> {
   const res = await axios.post(`${API_URL}/usuarios`, data);
-  return res.data;
+  return res.data.user ?? res.data;
 }
 
 export async function actualizarUsuario(id: string, data: Partial<Usuario>): Promise<Usuario> {

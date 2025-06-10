@@ -30,30 +30,28 @@ const CardArticulo: React.FC<CardArticuloProps> = ({ articulo, onEdit, onDelete 
 
 
   return (
-    <div className="d-flex w-100"> 
-      <Card style={{ minWidth: 320, maxWidth: 420, width: '100%' }} className="mb-3 shadow-sm h-100">
+    <div className="d-flex w-100">
+      <Card style={{ minWidth: 320, maxWidth: 420, width: '100%', height: 480, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }} className="mb-3 shadow-sm h-100">
         <div style={{ width: '100%', height: 180, overflow: 'hidden', borderTopLeftRadius: '0.375rem', borderTopRightRadius: '0.375rem', background: '#f8f9fa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {/* Priorizar imagenes[0] si existe, luego imagenUrl */}
           {(Array.isArray(articulo.imagenes) && articulo.imagenes[0]) || articulo.imagenUrl ? (
             <img
               src={Array.isArray(articulo.imagenes) && articulo.imagenes[0] ? articulo.imagenes[0] : articulo.imagenUrl}
               className="card-img-top"
               alt={`Imagen de ${articulo.nombre}`}
-              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', aspectRatio: '16/9' }}
             />
           ) : (
-            <i className="bi bi-image-alt text-muted" style={{ fontSize: '3rem' }}></i> // Icono placeholder
+            <i className="bi bi-image-alt text-muted" style={{ fontSize: '3rem' }}></i>
           )}
         </div>
-        <Card.Body className="d-flex flex-column">
-          <h5 className="card-title d-flex align-items-center gap-2 flex-wrap mb-1">
-            <i className="bi bi-box-seam text-primary"></i>
-            <span className="text-break">{articulo.nombre}</span>
+        <Card.Body className="d-flex flex-column" style={{ minHeight: 180, padding: '1rem' }}>
+          <h5 className="card-title d-flex align-items-center gap-2 flex-wrap mb-1" style={{ fontSize: '1.1rem', maxWidth: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={articulo.nombre}>
+            <span className="text-break">{articulo.nombre.length > 38 ? articulo.nombre.slice(0, 35) + '...' : articulo.nombre}</span>
             {stockNum === 0 && <span className="badge bg-danger ms-2"><i className="bi bi-exclamation-triangle"></i> Sin stock</span>}
           </h5>
-          <Card.Text className="mb-3" title={articulo.descripcion} style={{ minHeight: 20, maxHeight: 48, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', fontSize: '0.97rem', whiteSpace: 'normal' }}>
-            {articulo.descripcion && articulo.descripcion.length > 80
-              ? articulo.descripcion.slice(0, 77) + '...'
+          <Card.Text className="mb-3" title={articulo.descripcion} style={{ minHeight: 20, maxHeight: 44, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', fontSize: '0.97rem', whiteSpace: 'normal' }}>
+            {articulo.descripcion && articulo.descripcion.length > 70
+              ? articulo.descripcion.slice(0, 67) + '...'
               : articulo.descripcion}
           </Card.Text>
 

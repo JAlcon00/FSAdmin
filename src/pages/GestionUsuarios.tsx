@@ -39,12 +39,16 @@ const GestionUsuarios: React.FC = () => {
         await actualizarUsuario(usuarioActual._id, datosUsuario);
         toast.success('Usuario actualizado correctamente');
       } else {
-        await crearUsuario(datosUsuario);
-        toast.success('Usuario creado correctamente');
+        const nuevoUsuario = await crearUsuario(datosUsuario);
+        console.debug('Usuario creado (respuesta backend):', nuevoUsuario);
       }
       setMostrarFormulario(false);
       setUsuarioActual(null);
-      refetch();
+      await refetch();
+      // Debug: mostrar usuarios tras refetch
+      setTimeout(() => {
+        console.debug('Usuarios tras refetch:', usuarios);
+      }, 500);
     } catch (err: any) {
       setFormError(err?.response?.data?.message || 'Error al guardar el usuario');
       toast.error(err?.response?.data?.message || 'Error al guardar el usuario');

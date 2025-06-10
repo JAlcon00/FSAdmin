@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { Usuario } from '../../../services/usuariosService'; // Ajusta la ruta
+import type { Usuario } from '../../../services/usuariosService';
 
 interface FormUsuarioProps {
   usuarioActual: Usuario | null;
@@ -11,40 +11,42 @@ interface FormUsuarioProps {
 
 const FormUsuario: React.FC<FormUsuarioProps> = ({ usuarioActual, onSave, onCancel, loading, error }) => {
   const [nombre, setNombre] = useState('');
-  const [correo, setCorreo] = useState('');
-  const [rol, setRol] = useState('usuario'); // Rol por defecto
-  const [activo, setActivo] = useState(true);
-  const [password, setPassword] = useState(''); // Campo para la contraseña
+  const [rol, setRol] = useState<'cliente' | 'admin' | 'superadmin'>('cliente');
+  const [password, setPassword] = useState('');
 
   useEffect(() => {
     if (usuarioActual) {
       setNombre(usuarioActual.nombre);
-      setCorreo(usuarioActual.correo);
       setRol(usuarioActual.rol);
-      setActivo(usuarioActual.activo);
-      setPassword(''); // No precargar la contraseña por seguridad
+      setPassword('');
     } else {
-      // Limpiar formulario para nuevo usuario
       setNombre('');
-      setCorreo('');
-      setRol('usuario');
-      setActivo(true);
+      setRol('cliente');
       setPassword('');
     }
   }, [usuarioActual]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const datosUsuario: Partial<Usuario> = {
-      nombre,
-      correo,
-      rol,
-      activo,
-    };
-    if (password) { // Solo incluir la contraseña si se ha ingresado algo
-      (datosUsuario as any).password = password;
+    if (password && password.length > 0 && password.length < 6) {
+      alert('La contraseña debe tener al menos 6 caracteres.');
+      return;
     }
-    onSave(datosUsuario);
+    // Solo enviar los campos permitidos
+    const datosUsuario: any = {
+      nombre,
+      rol
+    };
+    if (password && password.length >= 6) {
+      datosUsuario.password = password;
+    }
+    try {
+      onSave(datosUsuario);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Error al guardar usuario:', err);
+      alert('Error al guardar usuario: ' + (err instanceof Error ? err.message : String(err)));
+    }
   };
 
   return (
@@ -63,17 +65,6 @@ const FormUsuario: React.FC<FormUsuarioProps> = ({ usuarioActual, onSave, onCanc
         />
       </div>
       <div className="mb-3">
-        <label htmlFor="correo" className="form-label">Correo Electrónico</label>
-        <input
-          type="email"
-          className="form-control"
-          id="correo"
-          value={correo}
-          onChange={(e) => setCorreo(e.target.value)}
-          required
-        />
-      </div>
-      <div className="mb-3">
         <label htmlFor="password" className="form-label">
           Contraseña {usuarioActual ? '(Dejar en blanco para no cambiar)' : ''}
         </label>
@@ -83,7 +74,6 @@ const FormUsuario: React.FC<FormUsuarioProps> = ({ usuarioActual, onSave, onCanc
           id="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          // No es 'required' para permitir la edición sin cambiar contraseña
         />
       </div>
       <div className="mb-3">
@@ -92,24 +82,12 @@ const FormUsuario: React.FC<FormUsuarioProps> = ({ usuarioActual, onSave, onCanc
           className="form-select"
           id="rol"
           value={rol}
-          onChange={(e) => setRol(e.target.value)}
+          onChange={(e) => setRol(e.target.value as 'cliente' | 'admin' | 'superadmin')}
         >
+          <option value="cliente">Cliente</option>
           <option value="admin">Administrador</option>
-          <option value="editor">Editor</option>
-          <option value="usuario">Usuario</option>
+          <option value="superadmin">Super Administrador</option>
         </select>
-      </div>
-      <div className="form-check mb-3">
-        <input
-          className="form-check-input"
-          type="checkbox"
-          id="activo"
-          checked={activo}
-          onChange={(e) => setActivo(e.target.checked)}
-        />
-        <label className="form-check-label" htmlFor="activo">
-          Activo
-        </label>
       </div>
       <div className="d-flex justify-content-end">
         <button type="button" className="btn btn-secondary me-2" onClick={onCancel} disabled={loading}>

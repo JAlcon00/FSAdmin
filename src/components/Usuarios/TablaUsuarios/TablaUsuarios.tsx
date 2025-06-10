@@ -20,9 +20,7 @@ const TablaUsuarios: React.FC<TablaUsuariosProps> = ({ usuarios, onEdit, onDelet
         <thead className="table-light">
           <tr>
             <th>Nombre</th>
-            <th>Correo</th>
             <th>Rol</th>
-            <th>Activo</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -30,9 +28,7 @@ const TablaUsuarios: React.FC<TablaUsuariosProps> = ({ usuarios, onEdit, onDelet
           {usuarios.map((usuario) => (
             <tr key={usuario._id}>
               <td>{usuario.nombre}</td>
-              <td>{usuario.correo}</td>
               <td>{usuario.rol}</td>
-              <td>{usuario.activo ? 'Sí' : 'No'}</td>
               <td>
                 <button className="btn btn-sm btn-primary me-2" onClick={() => onEdit(usuario)}>
                   <i className="bi bi-pencil-square"></i> Editar
