@@ -13,7 +13,7 @@ const GestionCategorias = lazy(() => import('./pages/GestionCategorias'));
 const GestionClientes = lazy(() => import('./pages/GestionClientes'));
 const GestionPedidos = lazy(() => import('./pages/GestionPedidos'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
-//const GestionUsuarios = lazy(() => import('./pages/GestionUsuarios'));
+const GestionUsuarios = lazy(() => import('./pages/GestionUsuarios'));
 
 function App() {
   const queryClient = new QueryClient();
@@ -38,7 +38,7 @@ function App() {
                   <Route path="/categorias" element={<GestionCategorias />} />
                   <Route path="/clientes" element={<GestionClientes />} />
                   <Route path="/ventas" element={<h3>Gestión de Ventas</h3>} />
-                  {/* <Route path="/usuarios" element={<GestionUsuarios />} /> */}
+                  <Route path="/usuarios" element={<GestionUsuarios />} />
                   <Route path="/pedidos" element={<GestionPedidos />} />
                   {/* Redirección para rutas no encontradas */}
                   <Route path="*" element={<Navigate to="/" replace />} />
