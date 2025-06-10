@@ -19,12 +19,6 @@ const ResumenGeneral: React.FC = () => {
     return acc + ventaAmount;
   }, 0);
 
-  // Calcular sumatoria de ventas individuales (usando todasVentas, campo total en pesos)
-  const sumaVentasIndividuales = todasVentas.reduce((acc, v) => {
-    const ventaTotal = typeof v.total === 'number' ? v.total : 0;
-    return acc + ventaTotal;
-  }, 0);
-
   // NUEVO: Contar ventas individuales registradas
   const ventasIndividualesCount = todasVentas.length;
 

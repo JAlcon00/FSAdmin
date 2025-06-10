@@ -7,7 +7,7 @@ import { useVentas } from '../hooks/useVentas';
 
 const GestionPedidos: React.FC = () => {
   const { pedidos, loading, error, refetch: refetchPedidos } = usePedidos();
-  const { ventas, todasVentas, resumen, loading: loadingVentas, error: errorVentas, refetch: refetchVentas } = useVentas();
+  const { ventas, todasVentas, loading: loadingVentas, error: errorVentas, refetch: refetchVentas } = useVentas();
 
   // Solo ventas de pedidos confirmados
   const pedidosConfirmados = pedidos.filter(p => p.estado === 'confirmado' || p.estado === 'completado');
@@ -26,7 +26,6 @@ const GestionPedidos: React.FC = () => {
   
   // Usar el número real de ventas
   const ventasRealizadas = numeroTransacciones; // Usar la suma de transacciones individuales
-  const promedioVenta = resumen?.promedioVenta || 0;
 
   // Manejar el estado de carga
   const mostrandoCarga = loading || loadingVentas;

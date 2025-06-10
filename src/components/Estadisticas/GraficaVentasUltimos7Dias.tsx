@@ -10,7 +10,7 @@ const GraficaVentasUltimos7Dias: React.FC = () => {
 
   // ventasUltimos7Dias: [{ fecha: '2025-06-01', total: 1234 }, ...]
   const data = ventasUltimos7Dias.map(v => ({
-    fecha: new Date(v.fecha).toLocaleDateString('es-MX', { weekday: 'short', day: '2-digit', month: 'short' }),
+    fecha: v.fecha ? new Date(v.fecha).toLocaleDateString('es-MX', { weekday: 'short', day: '2-digit', month: 'short' }) : '',
     total: v.total
   }));
 
