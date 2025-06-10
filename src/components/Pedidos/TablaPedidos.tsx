@@ -8,7 +8,6 @@ import { toast } from 'react-toastify';
 
 interface TablaPedidosProps {
   pedidos: Pedido[];
-  ventas: any[]; // Resumen de ventas (para cálculos)
   todasVentas?: any[]; // NUEVO: todas las ventas individuales (para verificar si existe venta por pedido)
   loading: boolean;
   error: string | null;
@@ -17,7 +16,7 @@ interface TablaPedidosProps {
   onVentaRegistrada?: () => void; // NUEVO: callback para notificar al padre
 }
 
-const TablaPedidos: React.FC<TablaPedidosProps> = ({ pedidos, ventas, todasVentas = [], loading, error, refetchPedidos, refetchVentas, onVentaRegistrada }) => {
+const TablaPedidos: React.FC<TablaPedidosProps> = ({ pedidos, todasVentas = [], loading, error, refetchPedidos, refetchVentas, onVentaRegistrada }) => {
   const { clientes } = useClientes();
   const [modalVenta, setModalVenta] = React.useState<{ show: boolean; pedido: Pedido | null; loading: boolean }>({ show: false, pedido: null, loading: false });
   const [ventasRealizadas, setVentasRealizadas] = React.useState<string[]>([]); // IDs de pedidos ya vendidos en esta sesión

@@ -98,7 +98,6 @@ const GestionPedidos: React.FC = () => {
       <FormPedido />
       <TablaPedidos 
         pedidos={pedidos} 
-        ventas={ventas} 
         todasVentas={todasVentas} 
         loading={loading} 
         error={error} 
