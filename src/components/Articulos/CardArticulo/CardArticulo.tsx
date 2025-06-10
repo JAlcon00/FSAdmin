@@ -30,9 +30,9 @@ const CardArticulo: React.FC<CardArticuloProps> = ({ articulo, onEdit, onDelete 
 
 
   return (
-    <div className="d-flex w-100">
-      <Card style={{ minWidth: 320, maxWidth: 420, width: '100%', height: 480, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }} className="mb-3 shadow-sm h-100">
-        <div style={{ width: '100%', height: 180, overflow: 'hidden', borderTopLeftRadius: '0.375rem', borderTopRightRadius: '0.375rem', background: '#f8f9fa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div className="col-12 col-sm-6 col-md-4 col-lg-3 d-flex p-2" style={{ minWidth: 0 }}>
+      <Card style={{ minWidth: 0, maxWidth: 340, width: '100%', height: 390, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }} className="mb-3 shadow-sm h-100">
+        <div style={{ width: '100%', height: 120, overflow: 'hidden', borderTopLeftRadius: '0.375rem', borderTopRightRadius: '0.375rem', background: '#f8f9fa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {(Array.isArray(articulo.imagenes) && articulo.imagenes[0]) || articulo.imagenUrl ? (
             <img
               src={Array.isArray(articulo.imagenes) && articulo.imagenes[0] ? articulo.imagenes[0] : articulo.imagenUrl}
@@ -41,17 +41,17 @@ const CardArticulo: React.FC<CardArticuloProps> = ({ articulo, onEdit, onDelete 
               style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', aspectRatio: '16/9' }}
             />
           ) : (
-            <i className="bi bi-image-alt text-muted" style={{ fontSize: '3rem' }}></i>
+            <i className="bi bi-image-alt text-muted" style={{ fontSize: '2rem' }}></i>
           )}
         </div>
-        <Card.Body className="d-flex flex-column" style={{ minHeight: 180, padding: '1rem' }}>
-          <h5 className="card-title d-flex align-items-center gap-2 flex-wrap mb-1" style={{ fontSize: '1.1rem', maxWidth: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={articulo.nombre}>
-            <span className="text-break">{articulo.nombre.length > 38 ? articulo.nombre.slice(0, 35) + '...' : articulo.nombre}</span>
+        <Card.Body className="d-flex flex-column" style={{ minHeight: 120, padding: '0.7rem' }}>
+          <h5 className="card-title d-flex align-items-center gap-2 flex-wrap mb-1" style={{ fontSize: '1rem', maxWidth: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={articulo.nombre}>
+            <span className="text-break">{articulo.nombre.length > 32 ? articulo.nombre.slice(0, 29) + '...' : articulo.nombre}</span>
             {stockNum === 0 && <span className="badge bg-danger ms-2"><i className="bi bi-exclamation-triangle"></i> Sin stock</span>}
           </h5>
-          <Card.Text className="mb-3" title={articulo.descripcion} style={{ minHeight: 20, maxHeight: 44, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', fontSize: '0.97rem', whiteSpace: 'normal' }}>
-            {articulo.descripcion && articulo.descripcion.length > 70
-              ? articulo.descripcion.slice(0, 67) + '...'
+          <Card.Text className="mb-2" title={articulo.descripcion} style={{ minHeight: 16, maxHeight: 36, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', fontSize: '0.93rem', whiteSpace: 'normal' }}>
+            {articulo.descripcion && articulo.descripcion.length > 55
+              ? articulo.descripcion.slice(0, 52) + '...'
               : articulo.descripcion}
           </Card.Text>
 
