@@ -6,6 +6,7 @@ import CardArticulo from '../components/Articulos/CardArticulo/CardArticulo';
 import { useArticulos } from '../hooks/useArticulos';
 import type { Articulo } from '../services/articulosService';
 import { crearArticulo, actualizarArticulo, eliminarArticulo } from '../services/articulosService';
+import LoaderPorcentaje from '../components/LoaderPorcentaje/LoaderPorcentaje';
 
 const GestionArticulos: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
@@ -18,6 +19,7 @@ const GestionArticulos: React.FC = () => {
   const [formLoading, setFormLoading] = useState(false);
   const [formPorcentaje, setFormPorcentaje] = useState(0);
   const [fade, setFade] = useState<'in' | 'out'>('in');
+  const [pendingView, setPendingView] = useState<'list' | 'cards' | null>(null);
   const { articulos = [], loading, error, refetch } = useArticulos();
 
   // Para refrescar la tabla tras crear/editar/eliminar
@@ -92,13 +94,15 @@ const GestionArticulos: React.FC = () => {
     }
   };
 
-  // Cambio simple de vista
+  // Animación al cambiar de vista
   const handleViewChange = (mode: 'list' | 'cards') => {
     if (viewMode === mode) return;
     setFade('out');
+    setPendingView(mode);
     setTimeout(() => {
       setViewMode(mode);
       setFade('in');
+      setPendingView(null);
     }, 250); // Duración del fade-out
   };
 
@@ -136,12 +140,20 @@ const GestionArticulos: React.FC = () => {
             ) : (articulos as any[]).length === 0 ? (
               <div className="col-12 text-center text-muted">No hay artículos para mostrar.</div>
             ) : (
-              (articulos as any[]).map((articulo: Articulo) => (
+              (articulos as Articulo[]).map((articulo: Articulo) => (
                 <div className="col-12 col-sm-6 col-md-4 col-lg-3" key={articulo._id}>
                   <CardArticulo
                     articulo={articulo}
-                    onEdit={a => { setEditArticulo(a); setShowForm(true); }}
-                    onDelete={a => { setDeleteArticulo(a); setShowDeleteModal(true); }}
+                    onEdit={currentArticulo => { setEditArticulo(currentArticulo); setShowForm(true); }}
+                    onDelete={(idToDelete: string) => {
+                      const articuloFound = (articulos as Articulo[]).find(art => art._id === idToDelete);
+                      if (articuloFound) {
+                        setDeleteArticulo(articuloFound);
+                        setShowDeleteModal(true);
+                      } else {
+                        console.warn(`Artículo con ID ${idToDelete} no encontrado para eliminar.`);
+                      }
+                    }}
                   />
                 </div>
               ))

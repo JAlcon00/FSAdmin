@@ -1,13 +1,15 @@
 import React from 'react';
-import type { Pedido } from '../../services/pedidosService';
+import type { Pedido } from '../../services/pedidosService'; // Importar Pedido
 import { useClientes } from '../../hooks/useClientes';
 import ModalConfirmarVenta from './ModalConfirmarVenta';
-import { crearVentaDesdePedido } from '../../services/ventasService';
+import { crearVentaDesdePedido, borrarVentaPorPedido } from '../../services/ventasService';
+import { actualizarEstadoPedido, eliminarPedido } from '../../services/pedidosService'; // Importar desde pedidosService
 import { toast } from 'react-toastify';
 
 interface TablaPedidosProps {
   pedidos: Pedido[];
-  ventas: any[]; // o el tipo correcto de Venta
+  ventas: any[]; // Resumen de ventas (para cálculos)
+  todasVentas?: any[]; // NUEVO: todas las ventas individuales (para verificar si existe venta por pedido)
   loading: boolean;
   error: string | null;
   refetchPedidos?: () => void;
@@ -15,19 +17,15 @@ interface TablaPedidosProps {
   onVentaRegistrada?: () => void; // NUEVO: callback para notificar al padre
 }
 
-const TablaPedidos: React.FC<TablaPedidosProps> = ({ pedidos, ventas, loading, error, refetchPedidos, refetchVentas, onVentaRegistrada }) => {
+const TablaPedidos: React.FC<TablaPedidosProps> = ({ pedidos, ventas, todasVentas = [], loading, error, refetchPedidos, refetchVentas, onVentaRegistrada }) => {
   const { clientes } = useClientes();
   const [modalVenta, setModalVenta] = React.useState<{ show: boolean; pedido: Pedido | null; loading: boolean }>({ show: false, pedido: null, loading: false });
   const [ventasRealizadas, setVentasRealizadas] = React.useState<string[]>([]); // IDs de pedidos ya vendidos en esta sesión
 
-  function getNombreCliente(usuario: any): string {
-    if (!usuario) return '';
-    if (typeof usuario === 'object' && usuario.nombre) return usuario.nombre;
-    if (typeof usuario === 'string') {
-      const cliente = clientes.find(c => c._id === usuario);
-      return cliente ? cliente.nombre : usuario;
-    }
-    return '';
+  function getNombreCliente(clienteId: string): string { // Cambiado usuario a clienteId y tipo a string
+    if (!clienteId) return '';
+    const cliente = clientes.find(c => c._id === clienteId);
+    return cliente ? cliente.nombre : clienteId; // Usar clienteId si no se encuentra el cliente
   }
 
   const handleVentaClick = (pedido: Pedido) => {
@@ -41,9 +39,7 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ pedidos, ventas, loading, e
       // 1. Registrar la venta
       await crearVentaDesdePedido(modalVenta.pedido);
       // 2. Cambiar estado del pedido a 'completado'
-      await import('../../services/pedidosService').then(({ actualizarEstadoPedido }) =>
-        actualizarEstadoPedido(modalVenta.pedido!._id, 'completado')
-      );
+      await actualizarEstadoPedido(modalVenta.pedido!._id, 'completado');
       setVentasRealizadas(prev => [...prev, modalVenta.pedido!._id]);
       toast.success('Venta registrada correctamente');
       if (refetchPedidos) refetchPedidos();
@@ -59,7 +55,7 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ pedidos, ventas, loading, e
   const handleEliminarPedido = async (pedidoId: string) => {
     if (!window.confirm('¿Seguro que deseas eliminar este pedido?')) return;
     try {
-      await import('../../services/pedidosService').then(({ eliminarPedido }) => eliminarPedido(pedidoId));
+      await eliminarPedido(pedidoId);
       toast.success('Pedido eliminado');
       if (refetchPedidos) refetchPedidos();
       if (refetchVentas) refetchVentas();
@@ -70,10 +66,14 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ pedidos, ventas, loading, e
 
   const handleBorrarVenta = async (pedidoId: string) => {
     try {
-      await import('../../services/ventasService').then(({ borrarVentaPorPedido }) => borrarVentaPorPedido(pedidoId));
+      console.log('DEBUG - Intentando borrar venta para pedido:', pedidoId);
+      // await import('../../services/ventasService').then(({ borrarVentaPorPedido }) => borrarVentaPorPedido(pedidoId));
+      await borrarVentaPorPedido(pedidoId); // Usar la función importada directamente
+      console.log('DEBUG - Venta borrada exitosamente para pedido:', pedidoId);
       toast.success('Venta eliminada');
       if (refetchVentas) refetchVentas();
     } catch (err: any) {
+      console.error('DEBUG - Error al borrar venta:', err);
       // Manejo de errores detallado
       if (err?.response) {
         toast.error(`Error al eliminar la venta: ${err.response.status} - ${err.response.data?.message || err.response.statusText}`);
@@ -90,15 +90,16 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ pedidos, ventas, loading, e
 
   // Función para saber si el pedido tiene venta registrada
   function tieneVentaRegistrada(pedidoId: string) {
-    return ventas.some(v => v.pedidoId === pedidoId);
+    const tieneVenta = todasVentas.some(v => v.pedidoId === pedidoId);
+    console.log(`DEBUG - ¿Pedido ${pedidoId} tiene venta registrada?`, tieneVenta);
+    console.log('DEBUG - Todas las ventas individuales:', todasVentas);
+    return tieneVenta;
   }
 
   // Utilidad para calcular el total si no viene del backend
-  function calcularTotal(detalles: Pedido['detalles']): number {
+  function calcularTotal(detalles: Pedido['detalles']): number { // Cambiado articulos a detalles
     if (!detalles || detalles.length === 0) return 0;
-    return detalles.reduce((acc, det) => {
-      // Validación extra: si subtotal no es numérico, intenta calcularlo
-      if (typeof det.subtotal === 'number') return acc + det.subtotal;
+    return detalles.reduce((acc: number, det: { cantidad: number; precioUnitario: number }) => {
       if (typeof det.cantidad === 'number' && typeof det.precioUnitario === 'number') {
         return acc + det.cantidad * det.precioUnitario;
       }
@@ -141,29 +142,23 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ pedidos, ventas, loading, e
             <tbody>
               {pedidos.map(pedido => (
                 <tr key={pedido._id}>
-                  <td className="fw-semibold text-dark">{getNombreCliente(pedido.usuario)}</td>
-                  <td>{pedido.detalles?.length ?? 0}</td>
-                  <td className="text-success fw-bold">
+                  <td className="fw-semibold text-dark">{getNombreCliente(pedido.clienteId || '')}</td><td>
+                    {pedido.detalles?.length ?? 0}
+                  </td><td className="text-success fw-bold">
                     {pedido.detalles?.length === 0 ? (
                       <span className="text-muted">Sin artículos</span>
                     ) : (
-                      <>
-                        ${
-                          (typeof pedido.total === 'number' ? pedido.total : calcularTotal(pedido.detalles)).toFixed(2)
-                        }
-                      </>
+                      <>${(typeof pedido.total === 'number' ? pedido.total : calcularTotal(pedido.detalles)).toFixed(2)}</>
                     )}
-                  </td>
-                  <td>{pedido.fechaCreacion ? new Date(pedido.fechaCreacion).toLocaleDateString() : <span className="text-muted">Sin fecha</span>}</td>
-                  <td>
-                    {/* Estado: solo badge, sin acciones */}
+                  </td><td>
+                    {pedido.fechaCreacion ? new Date(pedido.fechaCreacion).toLocaleDateString() : <span className="text-muted">Sin fecha</span>}
+                  </td><td>
                     {pedido.estado === 'completado' && <span className="badge rounded-pill bg-success">completado</span>}
                     {pedido.estado === 'enviado' && <span className="badge rounded-pill bg-warning text-dark">enviado</span>}
                     {pedido.estado === 'pendiente' && <span className="badge rounded-pill bg-secondary">pendiente</span>}
                     {pedido.estado === 'confirmado' && <span className="badge rounded-pill bg-primary">confirmado</span>}
                     {pedido.estado === 'cancelado' && <span className="badge rounded-pill bg-danger">cancelado</span>}
-                  </td>
-                  <td>
+                  </td><td>
                     {/* ACCIONES SIMPLIFICADAS Y ORDENADAS */}
                     {/* Cambiar entre pendiente <-> confirmado */}
                     {(pedido.estado === 'pendiente' || pedido.estado === 'confirmado') && (
@@ -181,9 +176,7 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ pedidos, ventas, loading, e
                               if (pedido.estado === 'confirmado' && nuevoEstado === 'pendiente') {
                                 await handleBorrarVenta(pedido._id);
                               }
-                              await import('../../services/pedidosService').then(({ actualizarEstadoPedido }) =>
-                                actualizarEstadoPedido(pedido._id, nuevoEstado)
-                              );
+                              await actualizarEstadoPedido(pedido._id, nuevoEstado);
                               toast.success('Estado actualizado');
                               if (refetchPedidos) refetchPedidos();
                               if (refetchVentas) refetchVentas();
@@ -201,19 +194,16 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ pedidos, ventas, loading, e
                         <option value="confirmado">confirmado</option>
                       </select>
                     )}
-                    {/* Registrar venta */}
                     {pedido.estado === 'confirmado' && !ventasRealizadas.includes(pedido._id) && (
                       <button className="btn btn-success btn-sm me-2" title="Registrar venta" onClick={() => handleVentaClick(pedido)}>
                         <i className="bi bi-currency-dollar"></i> Venta
                       </button>
                     )}
-                    {/* Eliminar pedido */}
                     {pedido.estado !== 'completado' && pedido.estado !== 'enviado' && pedido.estado !== 'cancelado' && (
                       <button className="btn btn-danger btn-sm me-2" title="Eliminar pedido" onClick={() => handleEliminarPedido(pedido._id)}>
                         <i className="bi bi-trash"></i> Eliminar
                       </button>
                     )}
-                    {/* Completado: regresar a pendiente/confirmado */}
                     {pedido.estado === 'completado' && (
                       <>
                         <select
@@ -223,13 +213,13 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ pedidos, ventas, loading, e
                             const nuevoEstado = e.target.value;
                             if (nuevoEstado === 'pendiente' || nuevoEstado === 'confirmado') {
                               try {
-                                // 1. Borrar la venta asociada
-                                await handleBorrarVenta(pedido._id);
+                                // 1. Borrar la venta asociada si existe
+                                if (tieneVentaRegistrada(pedido._id)) {
+                                  await handleBorrarVenta(pedido._id);
+                                }
                                 // 2. Cambiar el estado
-                                await import('../../services/pedidosService').then(({ actualizarEstadoPedido }) =>
-                                  actualizarEstadoPedido(pedido._id, nuevoEstado)
-                                );
-                                toast.success('Estado actualizado y venta eliminada');
+                                await actualizarEstadoPedido(pedido._id, nuevoEstado);
+                                toast.success('Estado actualizado y venta (si existía) eliminada');
                                 if (refetchPedidos) refetchPedidos();
                                 if (refetchVentas) refetchVentas();
                               } catch (err: any) {
@@ -250,9 +240,7 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ pedidos, ventas, loading, e
                           className="btn btn-warning btn-sm mt-1"
                           onClick={async () => {
                             try {
-                              await import('../../services/pedidosService').then(({ actualizarEstadoPedido }) =>
-                                actualizarEstadoPedido(pedido._id, 'enviado')
-                              );
+                              await actualizarEstadoPedido(pedido._id, 'enviado'); // Usar importación estática
                               toast.success('Pedido enviado');
                               if (refetchPedidos) refetchPedidos();
                               if (refetchVentas) refetchVentas();
@@ -265,7 +253,6 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ pedidos, ventas, loading, e
                         </button>
                       </>
                     )}
-                    {/* Enviado: regresar a completado, pendiente o confirmado (sin badge) */}
                     {pedido.estado === 'enviado' && (
                       <>
                         <select
@@ -275,13 +262,11 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ pedidos, ventas, loading, e
                             const nuevoEstado = e.target.value;
                             if (["completado", "pendiente", "confirmado"].includes(nuevoEstado)) {
                               try {
-                                // Si se regresa a pendiente o confirmado, borrar la venta asociada
-                                if (nuevoEstado === 'pendiente' || nuevoEstado === 'confirmado') {
+                                // Si se regresa a pendiente o confirmado desde enviado, y había una venta, borrarla.
+                                if ((nuevoEstado === 'pendiente' || nuevoEstado === 'confirmado') && tieneVentaRegistrada(pedido._id)) {
                                   await handleBorrarVenta(pedido._id);
                                 }
-                                await import('../../services/pedidosService').then(({ actualizarEstadoPedido }) =>
-                                  actualizarEstadoPedido(pedido._id, nuevoEstado)
-                                );
+                                await actualizarEstadoPedido(pedido._id, nuevoEstado);
                                 toast.success('Estado actualizado');
                                 if (refetchPedidos) refetchPedidos();
                                 if (refetchVentas) refetchVentas();
@@ -301,7 +286,6 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ pedidos, ventas, loading, e
                         </select>
                       </>
                     )}
-                    {/* Mostrar badge si la venta ya fue registrada y el estado es completado o enviado */}
                     {tieneVentaRegistrada(pedido._id) && (pedido.estado === 'completado' || pedido.estado === 'enviado') && (
                       <span className="badge bg-success ms-2">Venta registrada</span>
                     )}

@@ -6,6 +6,8 @@ const API_URL = import.meta.env.VITE_API_URL;
 export interface Pedido {
   _id: string;
   usuario: string;
+  /** Alias para compatibilidad con componentes que esperan clienteId */
+  clienteId?: string;
   articulos: Array<{
     articulo: string;
     cantidad: number;
@@ -22,9 +24,11 @@ export interface Pedido {
   estado: string;
 }
 
+// Al obtener los pedidos, mapeamos para asegurar que clienteId esté presente
 export async function getPedidos(): Promise<Pedido[]> {
   const res = await axios.get(`${API_URL}/pedidos`);
-  return res.data;
+  // Mapear para agregar clienteId si no existe
+  return res.data.map((p: any) => ({ ...p, clienteId: p.clienteId || p.usuario }));
 }
 
 export async function getPedidoById(id: string): Promise<Pedido> {
