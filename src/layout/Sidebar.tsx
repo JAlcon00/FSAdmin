@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 const menu = [
@@ -17,16 +17,63 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
   const location = useLocation();
+  const [isOpen, setIsOpen] = useState(false);
+  
   const handleLogout = () => {
     onLogout();
   };
+
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const closeSidebar = () => {
+    setIsOpen(false);
+  };
   return (
     <>
+      {/* Botón hamburguesa para móviles */}
+      <button
+        className="d-lg-none hamburger-btn"
+        onClick={toggleSidebar}
+        style={{
+          position: 'fixed',
+          top: '10px',
+          left: '10px',
+          zIndex: 1060,
+          background: 'linear-gradient(120deg, #6a11cb 0%, #2575fc 100%)',
+          border: 'none',
+          borderRadius: '8px',
+          color: 'white',
+          padding: '8px 12px',
+          fontSize: '1.2rem'
+        }}
+      >
+        <i className={`bi ${isOpen ? 'bi-x' : 'bi-list'}`}></i>
+      </button>
+
+      {/* Overlay para cerrar el menú en móviles */}
+      {isOpen && (
+        <div
+          className="d-lg-none sidebar-overlay"
+          onClick={closeSidebar}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            zIndex: 1049
+          }}
+        />
+      )}
+
       <aside
-        className="sidebar-gradient d-flex flex-column flex-shrink-0 p-3 border-end min-vh-100 shadow-lg animate__animated animate__fadeInLeft"
+        className={`sidebar-gradient d-flex flex-column flex-shrink-0 p-3 border-end min-vh-100 shadow-lg ${isOpen ? 'sidebar-open' : 'sidebar-closed'}`}
         style={{ width: 230, borderRadius: '0 24px 24px 0' }}
       >
-        <Link to="/" className="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none">
+        <Link to="/" className="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none" onClick={closeSidebar}>
           <span className="fs-4 fw-bold sidebar-title">FrontStore Admin</span>
         </Link>
         <hr />
@@ -35,9 +82,12 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
             <li className="nav-item" key={item.label}>
               {item.logout ? (
                 <button
-                  className="nav-link d-flex align-items-center gap-2 sidebar-logout-btn bg-transparent border-0 w-100 animate__animated animate__fadeInUp"
+                  className="nav-link d-flex align-items-center gap-2 sidebar-logout-btn bg-transparent border-0 w-100"
                   style={{ cursor: 'pointer' }}
-                  onClick={handleLogout}
+                  onClick={() => {
+                    handleLogout();
+                    closeSidebar();
+                  }}
                 >
                   <i className={`bi ${item.icon} sidebar-icon sidebar-icon-logout`}></i>
                   {item.label}
@@ -45,7 +95,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
               ) : (
                 <Link
                   to={item.path!}
-                  className={`nav-link d-flex align-items-center gap-2 sidebar-link ${location.pathname === item.path ? 'active' : ''} animate__animated animate__fadeInUp`}
+                  className={`nav-link d-flex align-items-center gap-2 sidebar-link ${location.pathname === item.path ? 'active' : ''}`}
+                  onClick={closeSidebar}
                 >
                   <i className={`bi ${item.icon} sidebar-icon`}></i>
                   {item.label}
@@ -60,6 +111,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
           background: linear-gradient(120deg, #6a11cb 0%, #2575fc 100%);
           color: #fff;
           box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.12);
+          transition: transform 0.3s ease;
         }
         .sidebar-title {
           color: #fff;
@@ -111,23 +163,21 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
           color: #fff;
           transform: translateX(4px) scale(1.04);
         }
-        @media (max-width: 900px) {
+        
+        @media (max-width: 991.98px) {
           .sidebar-gradient {
-            width: 100vw !important;
-            min-height: 70px !important;
-            flex-direction: row !important;
-            border-radius: 0 0 24px 24px;
-            padding: 0.5rem 1rem !important;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 1050;
+            transform: translateX(-100%);
           }
-          .sidebar-title {
-            font-size: 1.2rem;
+          .sidebar-gradient.sidebar-open {
+            transform: translateX(0);
           }
-          .nav.nav-pills.flex-column.mb-auto {
-            flex-direction: row !important;
-            margin-bottom: 0 !important;
-          }
-          .nav-item {
-            margin-right: 0.5rem;
+          .sidebar-gradient.sidebar-closed {
+            transform: translateX(-100%);
           }
         }
       `}</style>

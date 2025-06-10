@@ -41,13 +41,8 @@ function App() {
       <ErrorBoundary>
         <div className="d-flex">
           <Sidebar onLogout={() => setUsuario(null)} />
-          <div className="flex-grow-1">
-            <nav className="navbar navbar-expand-lg navbar-dark bg-primary mb-4 d-lg-none">
-              <div className="container-fluid">
-                <a className="navbar-brand" href="/">Admin Tienda</a>
-              </div>
-            </nav>
-            <div className="container-fluid bg-light min-vh-100 p-0" style={{ background: 'rgba(255,255,255,0.92)', borderRadius: 18 }}>
+          <div className="flex-grow-1 main-content">
+            <div className="container-fluid bg-light min-vh-100 p-3" style={{ background: 'rgba(255,255,255,0.92)', borderRadius: 18 }}>
               <Suspense fallback={<div>Cargando...</div>}>
                 <Routes>
                   {/* Dashboard principal */}
@@ -67,6 +62,18 @@ function App() {
           </div>
         </div>
         <ToastContainer position="top-right" autoClose={4000} hideProgressBar={false} newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover />
+        <style>{`
+          @media (max-width: 991.98px) {
+            .main-content {
+              margin-left: 0 !important;
+              width: 100% !important;
+              padding-top: 60px;
+            }
+            .d-flex {
+              flex-direction: column;
+            }
+          }
+        `}</style>
       </ErrorBoundary>
     </QueryClientProvider>
   );

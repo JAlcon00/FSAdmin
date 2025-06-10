@@ -137,21 +137,20 @@ const GestionArticulos: React.FC = () => {
               <div className="col-12 text-center text-muted">No hay artículos para mostrar.</div>
             ) : (
               (articulos as Articulo[]).map((articulo: Articulo) => (
-                <div className="col-12 col-sm-6 col-md-4 col-lg-3" key={articulo._id}>
-                  <CardArticulo
-                    articulo={articulo}
-                    onEdit={currentArticulo => { setEditArticulo(currentArticulo); setShowForm(true); }}
-                    onDelete={(idToDelete: string) => {
-                      const articuloFound = (articulos as Articulo[]).find(art => art._id === idToDelete);
-                      if (articuloFound) {
-                        setDeleteArticulo(articuloFound);
-                        setShowDeleteModal(true);
-                      } else {
-                        console.warn(`Artículo con ID ${idToDelete} no encontrado para eliminar.`);
-                      }
-                    }}
-                  />
-                </div>
+                <CardArticulo
+                  key={articulo._id}
+                  articulo={articulo}
+                  onEdit={currentArticulo => { setEditArticulo(currentArticulo); setShowForm(true); }}
+                  onDelete={(idToDelete: string) => {
+                    const articuloFound = (articulos as Articulo[]).find(art => art._id === idToDelete);
+                    if (articuloFound) {
+                      setDeleteArticulo(articuloFound);
+                      setShowDeleteModal(true);
+                    } else {
+                      console.warn(`Artículo con ID ${idToDelete} no encontrado para eliminar.`);
+                    }
+                  }}
+                />
               ))
             )}
           </div>
