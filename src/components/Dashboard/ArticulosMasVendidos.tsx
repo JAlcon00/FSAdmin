@@ -6,7 +6,7 @@ const ArticulosMasVendidos: React.FC = () => {
 
   return (
     <div className="card shadow-sm p-3">
-      <h5 className="mb-3">Artículos más vendidos</h5>
+      <h5 className="mb-3">Top 5 Artículos Más Vendidos</h5> {/* Título actualizado */}
       {loading ? (
         <div style={{ minHeight: 120, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <span className="text-muted">Cargando...</span>
@@ -31,10 +31,12 @@ const ArticulosMasVendidos: React.FC = () => {
             </thead>
             <tbody>
               {masVendidos.map((articulo, idx) => (
-                <tr key={articulo._id || idx}>
+                // Usar articulo._id que ahora debería estar presente gracias al hook
+                <tr key={articulo._id || idx}> 
                   <td>{idx + 1}</td>
-                  <td>{articulo.nombre || articulo.articulo || 'Sin nombre'}</td>
-                  <td>{articulo.cantidad || articulo.totalVendido || 0}</td>
+                  {/* Acceder a articulo.nombre y articulo.cantidad que define el hook */}
+                  <td>{articulo.nombre}</td>
+                  <td>{articulo.cantidad}</td>
                 </tr>
               ))}
             </tbody>

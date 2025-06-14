@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Pedido } from '../../services/pedidosService'; // Importar Pedido
 import { useClientes } from '../../hooks/useClientes';
+import { useArticulos } from '../../hooks/useArticulos';
 import ModalConfirmarVenta from './ModalConfirmarVenta';
 import { crearVentaDesdePedido, borrarVentaPorPedido } from '../../services/ventasService';
 import { actualizarEstadoPedido, eliminarPedido } from '../../services/pedidosService'; // Importar desde pedidosService
@@ -18,6 +19,7 @@ interface TablaPedidosProps {
 
 const TablaPedidos: React.FC<TablaPedidosProps> = ({ pedidos, todasVentas = [], loading, error, refetchPedidos, refetchVentas, onVentaRegistrada }) => {
   const { clientes } = useClientes();
+  const { articulos } = useArticulos();
   const [modalVenta, setModalVenta] = React.useState<{ show: boolean; pedido: Pedido | null; loading: boolean }>({ show: false, pedido: null, loading: false });
   const [ventasRealizadas, setVentasRealizadas] = React.useState<string[]>([]); // IDs de pedidos ya vendidos en esta sesión
 
@@ -25,6 +27,25 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ pedidos, todasVentas = [], 
     if (!clienteId) return '';
     const cliente = clientes.find(c => c._id === clienteId);
     return cliente ? cliente.nombre : clienteId; // Usar clienteId si no se encuentra el cliente
+  }
+
+  function getNombreArticulo(articuloId: string): string {
+    if (!articuloId) return '';
+    const articulo = articulos.find(a => a._id === articuloId);
+    return articulo ? articulo.nombre : articuloId; // Usar articuloId si no se encuentra el artículo
+  }
+
+  function getProductosDelPedido(detalles: Pedido['detalles']): { productos: string[]; cantidadTotal: number } {
+    if (!detalles || detalles.length === 0) return { productos: [], cantidadTotal: 0 };
+    
+    const productos = detalles.map(detalle => {
+      const nombre = getNombreArticulo(detalle.articulo);
+      return `${nombre} (${detalle.cantidad})`;
+    });
+    
+    const cantidadTotal = detalles.reduce((acc, detalle) => acc + detalle.cantidad, 0);
+    
+    return { productos, cantidadTotal };
   }
 
   const handleVentaClick = (pedido: Pedido) => {
@@ -126,43 +147,85 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ pedidos, todasVentas = [], 
       {(!pedidos || pedidos.length === 0) ? (
         <div className="alert alert-info">No hay pedidos para mostrar.</div>
       ) : (
-        <div className="table-responsive rounded shadow-sm">
-          <table className="table table-bordered table-hover align-middle bg-white">
+        <div className="table-responsive rounded shadow-sm" style={{ minHeight: '400px' }}>
+          <table className="table table-bordered table-hover align-middle bg-white mb-0" style={{ 
+            fontSize: '0.9rem',
+            tableLayout: 'fixed' 
+          }}>
             <thead className="table-light">
               <tr>
-                <th>Cliente</th>
-                <th>Artículos</th>
-                <th>Total</th>
-                <th>Fecha</th>
-                <th>Estado</th>
-                <th>Acción</th>
+                <th style={{ width: '12%' }}>Cliente</th>
+                <th style={{ width: '30%' }}>Productos</th>
+                <th style={{ width: '8%' }} className="text-center">Cantidad</th>
+                <th style={{ width: '12%' }} className="text-end">Total</th>
+                <th style={{ width: '10%' }}>Fecha</th>
+                <th style={{ width: '10%' }} className="text-center">Estado</th>
+                <th style={{ width: '18%' }} className="text-center">Acción</th>
               </tr>
             </thead>
             <tbody>
-              {pedidos.map(pedido => (
+              {pedidos.map(pedido => {
+                const { productos, cantidadTotal } = getProductosDelPedido(pedido.detalles);
+                return (
                 <tr key={pedido._id}>
-                  <td className="fw-semibold text-dark">{getNombreCliente(pedido.clienteId || '')}</td><td>
-                    {pedido.detalles?.length ?? 0}
-                  </td><td className="text-success fw-bold">
+                  <td className="fw-semibold text-dark" style={{ width: '12%' }}>
+                    <div className="text-truncate" title={getNombreCliente(pedido.clienteId || '')}>
+                      {getNombreCliente(pedido.clienteId || '')}
+                    </div>
+                  </td>
+                  <td style={{ width: '30%' }}>
+                    {productos.length === 0 ? (
+                      <span className="text-muted">Sin productos</span>
+                    ) : (
+                      <div>
+                        {productos.map((producto, index) => (
+                          <div key={index} className="mb-1">
+                            <small className="text-dark d-block" style={{ 
+                              wordWrap: 'break-word', 
+                              whiteSpace: 'normal',
+                              lineHeight: '1.3'
+                            }}>
+                              {producto}
+                            </small>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </td>
+                  <td className="text-center" style={{ width: '8%' }}>
+                    <span className="badge bg-secondary fs-6">{cantidadTotal}</span>
+                  </td>                  <td className="text-success fw-bold text-end" style={{ width: '12%' }}>
                     {pedido.detalles?.length === 0 ? (
                       <span className="text-muted">Sin artículos</span>
                     ) : (
-                      <>${(typeof pedido.total === 'number' ? pedido.total : calcularTotal(pedido.detalles)).toFixed(2)}</>
+                      <span title={`$${(typeof pedido.total === 'number' ? pedido.total : calcularTotal(pedido.detalles)).toFixed(2)}`}>
+                        ${(typeof pedido.total === 'number' ? pedido.total : calcularTotal(pedido.detalles)).toFixed(2)}
+                      </span>
                     )}
-                  </td><td>
-                    {pedido.fechaCreacion ? new Date(pedido.fechaCreacion).toLocaleDateString() : <span className="text-muted">Sin fecha</span>}
-                  </td><td>
+                  </td>
+                  <td style={{ width: '10%' }}>
+                    <small className="text-muted">
+                      {pedido.fechaCreacion ? new Date(pedido.fechaCreacion).toLocaleDateString('es-ES', { 
+                        day: '2-digit', 
+                        month: '2-digit', 
+                        year: 'numeric' 
+                      }) : <span className="text-muted">Sin fecha</span>}
+                    </small>
+                  </td>
+                  <td className="text-center" style={{ width: '10%' }}>
                     {pedido.estado === 'completado' && <span className="badge rounded-pill bg-success">completado</span>}
                     {pedido.estado === 'enviado' && <span className="badge rounded-pill bg-warning text-dark">enviado</span>}
                     {pedido.estado === 'pendiente' && <span className="badge rounded-pill bg-secondary">pendiente</span>}
                     {pedido.estado === 'confirmado' && <span className="badge rounded-pill bg-primary">confirmado</span>}
                     {pedido.estado === 'cancelado' && <span className="badge rounded-pill bg-danger">cancelado</span>}
-                  </td><td>
+                  </td>
+                  <td className="text-center" style={{ width: '18%' }}>
                     {/* ACCIONES SIMPLIFICADAS Y ORDENADAS */}
+                    <div className="d-flex flex-column gap-1">
                     {/* Cambiar entre pendiente <-> confirmado */}
                     {(pedido.estado === 'pendiente' || pedido.estado === 'confirmado') && (
                       <select
-                        className="form-select form-select-sm d-inline-block w-auto me-2"
+                        className="form-select form-select-sm"
                         value={pedido.estado}
                         onChange={async (e) => {
                           const nuevoEstado = e.target.value;
@@ -186,23 +249,25 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ pedidos, todasVentas = [], 
                             toast.error('Transición de estado no permitida.');
                           }
                         }}
-                        style={{ minWidth: 120 }}
                         disabled={ventasRealizadas.includes(pedido._id)}
                       >
                         <option value="pendiente">pendiente</option>
                         <option value="confirmado">confirmado</option>
                       </select>
                     )}
+                    
+                    <div className="d-flex gap-1">
                     {pedido.estado === 'confirmado' && !ventasRealizadas.includes(pedido._id) && (
-                      <button className="btn btn-success btn-sm me-2" title="Registrar venta" onClick={() => handleVentaClick(pedido)}>
-                        <i className="bi bi-currency-dollar"></i> Venta
+                      <button className="btn btn-success btn-sm flex-fill" title="Registrar venta" onClick={() => handleVentaClick(pedido)}>
+                        <i className="bi bi-currency-dollar"></i>
                       </button>
                     )}
                     {pedido.estado !== 'completado' && pedido.estado !== 'enviado' && pedido.estado !== 'cancelado' && (
-                      <button className="btn btn-danger btn-sm me-2" title="Eliminar pedido" onClick={() => handleEliminarPedido(pedido._id)}>
-                        <i className="bi bi-trash"></i> Eliminar
+                      <button className="btn btn-danger btn-sm flex-fill" title="Eliminar pedido" onClick={() => handleEliminarPedido(pedido._id)}>
+                        <i className="bi bi-trash"></i>
                       </button>
                     )}
+                    </div>
                     {pedido.estado === 'completado' && (
                       <>
                         <select
@@ -288,9 +353,11 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ pedidos, todasVentas = [], 
                     {tieneVentaRegistrada(pedido._id) && (pedido.estado === 'completado' || pedido.estado === 'enviado') && (
                       <span className="badge bg-success ms-2">Venta registrada</span>
                     )}
+                    </div>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

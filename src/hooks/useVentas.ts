@@ -12,6 +12,8 @@ export function useVentas() {
         getResumenVentasMensual(),
         getAllVentas()
       ]);
+      console.log('[useVentas] Datos de ventasData:', ventasData);
+      console.log('[useVentas] Datos de todasVentasData:', todasVentasData);
       return { ventas: ventasData, resumen: resumenData, todasVentas: todasVentasData };
     },
     staleTime: 1000 * 60,

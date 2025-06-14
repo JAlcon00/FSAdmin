@@ -27,8 +27,8 @@ export interface Pedido {
 // Al obtener los pedidos, mapeamos para asegurar que clienteId esté presente
 export async function getPedidos(): Promise<Pedido[]> {
   const res = await axios.get(`${API_URL}/pedidos`);
-  // Mapear para agregar clienteId si no existe
-  return res.data.map((p: any) => ({ ...p, clienteId: p.clienteId || p.usuario }));
+  // Mapear para agregar clienteId si no existe, usando el campo 'cliente' del backend
+  return res.data.map((p: any) => ({ ...p, clienteId: p.clienteId || p.cliente || p.usuario }));
 }
 
 export async function getPedidoById(id: string): Promise<Pedido> {

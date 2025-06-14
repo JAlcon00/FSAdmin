@@ -21,8 +21,20 @@ export async function getArticulos(): Promise<Articulo[]> {
 }
 
 export async function getArticuloById(id: string): Promise<Articulo> {
-  const res = await axios.get(`${API_URL}/articulos/${id}`);
-  return res.data;
+  console.log(`[articulosService] Solicitando artículo con ID: ${id}`);
+  try {
+    const res = await axios.get(`${API_URL}/articulos/${id}`);
+    console.log(`[articulosService] ✓ Artículo obtenido: ${id}`, res.data);
+    return res.data;
+  } catch (error: any) {
+    console.error(`[articulosService] ✗ Error al obtener artículo ${id}:`, error.response?.status, error.response?.data);
+    if (error.response?.status === 404) {
+      // Si el artículo no se encuentra, lanzar un error específico
+      throw new Error(`Artículo con ID ${id} no encontrado`);
+    }
+    // Para otros errores, relanzar el error original
+    throw error;
+  }
 }
 
 export async function crearArticulo(data: Partial<Articulo>): Promise<Articulo> {

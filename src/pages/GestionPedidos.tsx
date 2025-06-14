@@ -7,25 +7,19 @@ import { useVentas } from '../hooks/useVentas';
 
 const GestionPedidos: React.FC = () => {
   const { pedidos, loading, error, refetch: refetchPedidos } = usePedidos();
-  const { ventas, todasVentas, loading: loadingVentas, error: errorVentas, refetch: refetchVentas } = useVentas();
+  const { todasVentas, loading: loadingVentas, error: errorVentas, refetch: refetchVentas } = useVentas();
 
   // Solo ventas de pedidos confirmados
   const pedidosConfirmados = pedidos.filter(p => p.estado === 'confirmado' || p.estado === 'completado');
   
-  // Calcular ingresos usando la propiedad 'amount' en lugar de 'total'
-  const ingresosTotales = ventas.reduce((acc, v) => {
-    const ventaAmount = typeof v.amount === 'number' ? v.amount : 0;
-    return acc + ventaAmount;
-  }, 0);
+  // Calcular ingresos usando todas las ventas registradas (aplicar multiplicación por 100 para consistencia con dashboard)
+  const ingresosTotales = todasVentas.reduce((acc, v) => {
+    const ventaTotal = typeof v.total === 'number' ? v.total * 100 : 0; // Multiplicar por 100 para consistencia
+    return acc + ventaTotal;
+  }, 0) / 100; // Dividir entre 100 al final para mostrar en formato decimal
   
-  // Para el número de ventas individuales, sumar los 'count' de cada registro
-  const numeroTransacciones = ventas.reduce((acc, v) => {
-    const ventaCount = typeof v.count === 'number' ? v.count : 0;
-    return acc + ventaCount;
-  }, 0);
-  
-  // Usar el número real de ventas
-  const ventasRealizadas = numeroTransacciones; // Usar la suma de transacciones individuales
+  // Para el número de ventas individuales, usar el conteo de todas las ventas
+  const ventasRealizadas = todasVentas.length;
 
   // Manejar el estado de carga
   const mostrandoCarga = loading || loadingVentas;
@@ -60,7 +54,7 @@ const GestionPedidos: React.FC = () => {
           <div className="card shadow-sm border-info">
             <div className="card-body d-flex flex-column align-items-center justify-content-center">
               <span className="fw-bold text-info" style={{ fontSize: '2.2rem' }}>
-                {mostrandoCarga ? '...' : `$${(ingresosTotales / 100).toFixed(2)}`}
+                {mostrandoCarga ? '...' : `$${ingresosTotales.toFixed(2)}`}
               </span>
               <span className="text-secondary">Ingresos totales</span>
             </div>
@@ -86,7 +80,7 @@ const GestionPedidos: React.FC = () => {
                 </li>
                 <li className="list-group-item d-flex justify-content-between align-items-center">
                   Ingresos totales
-                  <span className="fw-bold text-success">{mostrandoCarga ? '...' : `$${(ingresosTotales / 100).toFixed(2)}`}</span>
+                  <span className="fw-bold text-success">{mostrandoCarga ? '...' : `$${ingresosTotales.toFixed(2)}`}</span>
                 </li>
                 
               </ul>

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { getEstadisticasVentas, getArticulosMasVendidos } from '../services/estadisticasService';
-import { getArticuloById } from '../services/articulosService'; // Importar para obtener nombre
 import type { EstadisticaVenta } from '../services/estadisticasService';
 
 export function useEstadisticas() {
@@ -10,36 +9,40 @@ export function useEstadisticas() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('[useEstadisticas] Iniciando carga de estadísticas...');
     setLoading(true);
     Promise.all([
       getEstadisticasVentas(),
       getArticulosMasVendidos()
     ])
-      .then(async ([stats, masVendidosData]) => {
+      .then(([stats, masVendidosData]) => {
+        console.log('[useEstadisticas] Datos crudos de getEstadisticasVentas:', stats);
+        console.log('[useEstadisticas] Datos crudos de getArticulosMasVendidos:', masVendidosData);
         setEstadisticas(stats);
-        // Mapear para obtener nombre del artículo
-        const articulosConNombre = await Promise.all(
-          masVendidosData.map(async (item: any) => {
-            try {
-              const articulo = await getArticuloById(item._id);
-              return {
-                id: item._id,
-                nombre: articulo.nombre,
-                cantidad: item.totalVendidos
-              };
-            } catch {
-              return {
-                id: item._id,
-                nombre: 'Desconocido',
-                cantidad: item.totalVendidos
-              };
-            }
-          })
+        
+        if (!masVendidosData || masVendidosData.length === 0) {
+          console.log('[useEstadisticas] No hay datos de artículos más vendidos desde la API.');
+          setMasVendidos([]);
+          return;
+        }
+
+        // El backend ya devuelve nombre y totalVendidos
+        setMasVendidos(
+          masVendidosData.map((item: any) => ({
+            _id: item._id,
+            nombre: item.nombre,
+            cantidad: item.totalVendidos
+          }))
         );
-        setMasVendidos(articulosConNombre);
       })
-      .catch(() => setError('Error al cargar estadísticas'))
-      .finally(() => setLoading(false));
+      .catch((err) => {
+        console.error('[useEstadisticas] Error al cargar estadísticas o procesar datos:', err);
+        setError('Error al cargar estadísticas de artículos más vendidos');
+      })
+      .finally(() => {
+        setLoading(false);
+        console.log('[useEstadisticas] Carga de estadísticas finalizada.');
+      });
   }, []);
 
   return { estadisticas, masVendidos, loading, error };
