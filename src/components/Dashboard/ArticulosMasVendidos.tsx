@@ -1,8 +1,59 @@
 import React from 'react';
 import { useEstadisticas } from '../../hooks/useEstadisticas';
+import { useVentas } from '../../hooks/useVentas';
+import { usePedidos } from '../../hooks/usePedidos';
+import { useArticulos } from '../../hooks/useArticulos';
 
 const ArticulosMasVendidos: React.FC = () => {
-  const { masVendidos, loading, error } = useEstadisticas();
+  const { masVendidos: masVendidosBackend, loading: loadingEstadisticas, error: errorEstadisticas } = useEstadisticas();
+  const { todasVentas, loading: loadingVentas, error: errorVentas } = useVentas();
+  const { pedidos, loading: loadingPedidos, error: errorPedidos } = usePedidos();
+  const { articulos, loading: loadingArticulos, error: errorArticulos } = useArticulos();
+
+  const loading = loadingEstadisticas || loadingVentas || loadingPedidos || loadingArticulos;
+  const error = errorEstadisticas || errorVentas || errorPedidos || errorArticulos;
+
+  // Calcular artículos más vendidos basándose en ventas y pedidos
+  const calcularArticulosMasVendidos = () => {
+    if (!todasVentas.length || !pedidos.length || !articulos.length) {
+      return masVendidosBackend; // Fallback al backend si no hay datos
+    }
+
+    // Crear un mapa de conteo de artículos
+    const conteoArticulos: { [articuloId: string]: number } = {};
+
+    // Iterar sobre todas las ventas
+    todasVentas.forEach(venta => {
+      if (venta.pedidoId) {
+        // Encontrar el pedido correspondiente
+        const pedido = pedidos.find(p => p._id === venta.pedidoId);
+        if (pedido && pedido.detalles) {
+          // Sumar las cantidades de cada artículo en el pedido
+          pedido.detalles.forEach(detalle => {
+            const articuloId = detalle.articulo;
+            conteoArticulos[articuloId] = (conteoArticulos[articuloId] || 0) + detalle.cantidad;
+          });
+        }
+      }
+    });
+
+    // Convertir a array y ordenar por cantidad vendida
+    const articulosOrdenados = Object.entries(conteoArticulos)
+      .map(([articuloId, cantidad]) => {
+        const articulo = articulos.find(a => a._id === articuloId);
+        return {
+          _id: articuloId,
+          nombre: articulo ? articulo.nombre : `Artículo ${articuloId}`,
+          cantidad
+        };
+      })
+      .sort((a, b) => b.cantidad - a.cantidad)
+      .slice(0, 5); // Top 5
+
+    return articulosOrdenados.length > 0 ? articulosOrdenados : masVendidosBackend;
+  };
+
+  const masVendidos = calcularArticulosMasVendidos();
 
   return (
     <div className="card shadow-sm p-3">

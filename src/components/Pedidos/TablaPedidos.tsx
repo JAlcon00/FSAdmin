@@ -299,15 +299,14 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ pedidos, todasVentas = [], 
                           <option value="pendiente">pendiente</option>
                           <option value="confirmado">confirmado</option>
                         </select>
-                        {/* Botón para pasar a enviado solo si está completado */}
+                        {/* Botón para pasar a enviado manteniendo la venta registrada */}
                         <button
                           className="btn btn-warning btn-sm mt-1"
                           onClick={async () => {
                             try {
-                              await actualizarEstadoPedido(pedido._id, 'enviado'); // Usar importación estática
-                              toast.success('Pedido enviado');
+                              await actualizarEstadoPedido(pedido._id, 'enviado');
+                              toast.success('Pedido marcado como enviado');
                               if (refetchPedidos) refetchPedidos();
-                              if (refetchVentas) refetchVentas();
                             } catch (err: any) {
                               toast.error(err?.response?.data?.message || 'Error al cambiar a enviado');
                             }
@@ -326,12 +325,16 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ pedidos, todasVentas = [], 
                             const nuevoEstado = e.target.value;
                             if (["completado", "pendiente", "confirmado"].includes(nuevoEstado)) {
                               try {
-                                // Si se regresa a pendiente o confirmado desde enviado, y había una venta, borrarla.
+                                // Si se regresa a pendiente o confirmado desde enviado, borrar la venta.
+                                // Si va a completado, mantener la venta.
                                 if ((nuevoEstado === 'pendiente' || nuevoEstado === 'confirmado') && tieneVentaRegistrada(pedido._id)) {
                                   await handleBorrarVenta(pedido._id);
                                 }
                                 await actualizarEstadoPedido(pedido._id, nuevoEstado);
-                                toast.success('Estado actualizado');
+                                const mensaje = (nuevoEstado === 'pendiente' || nuevoEstado === 'confirmado') 
+                                  ? 'Estado actualizado y venta eliminada' 
+                                  : 'Estado actualizado';
+                                toast.success(mensaje);
                                 if (refetchPedidos) refetchPedidos();
                                 if (refetchVentas) refetchVentas();
                               } catch (err: any) {

@@ -9,8 +9,8 @@ const GestionPedidos: React.FC = () => {
   const { pedidos, loading, error, refetch: refetchPedidos } = usePedidos();
   const { todasVentas, loading: loadingVentas, error: errorVentas, refetch: refetchVentas } = useVentas();
 
-  // Solo ventas de pedidos confirmados
-  const pedidosConfirmados = pedidos.filter(p => p.estado === 'confirmado' || p.estado === 'completado');
+  // Solo ventas de pedidos confirmados (incluye enviado como equivalente a completado)
+  const pedidosConfirmados = pedidos.filter(p => p.estado === 'confirmado' || p.estado === 'completado' || p.estado === 'enviado');
   
   // Calcular ingresos usando todas las ventas registradas (aplicar multiplicación por 100 para consistencia con dashboard)
   const ingresosTotales = todasVentas.reduce((acc, v) => {

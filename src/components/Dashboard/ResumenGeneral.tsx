@@ -3,18 +3,23 @@ import { useEstadisticas } from '../../hooks/useEstadisticas';
 import { usePedidos } from '../../hooks/usePedidos';
 import { useClientes } from '../../hooks/useClientes';
 import { useArticulos } from '../../hooks/useArticulos';
+import { useVentas } from '../../hooks/useVentas';
 
 const ResumenGeneral: React.FC = () => {
-  const { estadisticas, loading: loadingEstadisticas, error: errorEstadisticas } = useEstadisticas();
+  const { loading: loadingEstadisticas, error: errorEstadisticas } = useEstadisticas();
   const { pedidos, loading: loadingPedidos, error: errorPedidos } = usePedidos();
   const { clientes, loading: loadingClientes, error: errorClientes } = useClientes();
   const { articulos, loading: loadingArticulos, error: errorArticulos } = useArticulos();
+  const { todasVentas, loading: loadingVentas, error: errorVentas } = useVentas();
 
-  const loading = loadingEstadisticas || loadingPedidos || loadingClientes || loadingArticulos;
-  const error = errorEstadisticas || errorPedidos || errorClientes || errorArticulos;
+  const loading = loadingEstadisticas || loadingPedidos || loadingClientes || loadingArticulos || loadingVentas;
+  const error = errorEstadisticas || errorPedidos || errorClientes || errorArticulos || errorVentas;
 
-  // Usar el totalVentas del backend directamente (ya viene en centavos convertidos a pesos)
-  const ingresosTotales = Number(estadisticas?.totalVentas ?? 0) / 100;
+  // Calcular ingresos totales usando todas las ventas individuales (incluye enviado y completado)
+  const ingresosTotales = todasVentas.reduce((acc, v) => {
+    const ventaTotal = typeof v.total === 'number' ? v.total : 0;
+    return acc + ventaTotal;
+  }, 0);
 
   return (
     <div className="row mb-4">
